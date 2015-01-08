@@ -1,0 +1,165 @@
+#! /usr/bin/env node --harmony
+
+var memory = Array();
+var maxMem = 256;
+var maxVal = 255;
+var ip = 0;
+var mp = 0;
+var dp = 0;
+var program = new Array();
+var targets = new Array();
+var input = new Array();
+var output = '';
+var promptForInput = 0;
+
+function initMemory() {
+	for (var i = 0; i <= maxMem; i++) {
+		memory[i] = 0;
+	}
+	mp = 0;
+}
+
+function initIo() {
+	dp = 0;
+	output = '';
+}
+
+function initProg(code) {
+	program.length = 0;
+	for (var i = 0; i < code.length; i++) {
+		var op = code.charAt(i)
+		// Check it's not a carriage return or anything that will
+		// break the program viewer too badly.
+		if (isValidOp(op)) {
+			program[program.length] = op;
+		}
+	}
+	ip = 0;
+	initTargets();
+}
+
+function initTargets() {
+	targets.length = 0;
+	var tempStack = new Array();
+	for (var i = 0; i < program.length; i++) {
+		var op = program[i];
+		if (op == '[') {
+			tempStack.push(i);
+		}
+		if (op == ']') {
+			if (tempStack.length == 0) alert('Parseing error: ] with no matching [');
+			var target = tempStack.pop();
+			targets[i] = target;
+			targets[target] = i;
+		}
+	}
+	if (tempStack.length > 0) alert('Parseing error: [ with no matching ]');
+}
+
+function initInput() {
+	input.length = 0;
+	var in_data = process.argv[3] || '';
+	for (var i = 0; i < in_data.length; i++) {
+		input[input.length] = in_data.charAt(i);
+	}
+	dp = 0;
+}
+
+function getInput() {
+	if (promptForInput) {
+		var data = window.prompt("Enter an input character (use #xxx to specify a decimal code, !xxx for an octal code, or $xxx for a hex code):", "#0");
+		if ((data == null) || (!data)) return 0;
+		if (data.charAt(0) == '#') {
+			return parseInt(data.substr(1), 10);
+		}
+		if (data.charAt(0) == '!') {
+			return eval('0' + data.substr(1));
+		}
+		if (data.charAt(0) == '$') {
+			return eval('0x' + data.substr(1));
+		}
+		return data.charCodeAt(0);
+	} else {
+		var result = (dp >= input.length) ? 0 : input[dp].charCodeAt(0);
+		dp++;
+		return result;
+	}
+}
+
+function isValidOp(op) {
+	if (op == '+') return 1;
+	if (op == '-') return 1;
+	if (op == '>') return 1;
+	if (op == '<') return 1;
+	if (op == '[') return 1;
+	if (op == ']') return 1;
+	if (op == '.') return 1;
+	if (op == ',') return 1;
+	if (op == '#') return 1;
+	return 0;
+}
+
+function putOutput(c) {
+	output += c;
+}
+
+function executeOpcode(op) {
+	switch (op) {
+		case '+':
+			memory[mp] ++;
+			if (memory[mp] > maxVal) memory[mp] = 0;
+			break;
+		case '-':
+			memory[mp] --;
+			if (memory[mp] < 0) memory[mp] = maxVal;
+			break;
+		case '>':
+			mp++;
+			if (mp >= maxMem) mp = 0;
+			break;
+		case '<':
+			mp--;
+			if (mp < 0) mp = maxMem - 1;
+			break;
+		case '[':
+			if (memory[mp] == 0) ip = targets[ip];
+			break;
+		case ']':
+			ip = targets[ip] - 1;
+			break;
+		case '.':
+			putOutput(String.fromCharCode(memory[mp]));
+			break;
+		case ',':
+			memory[mp] = getInput();
+			break;
+	}
+}
+
+function runDone() {
+	console.log('finished: ', output);
+}
+
+function runStep() {
+	// execute instrcution under ip
+	var op = program[ip];
+	executeOpcode(op);
+	// increment ip
+	ip++;
+	if (ip >= program.length) {
+		runDone();
+		return;
+	}
+	setTimeout(runStep, 0);
+}
+
+function run(prog) {
+	console.log('Processing:', prog);
+	initProg(prog);
+	initMemory();
+	initIo();
+	initInput();
+	runStep();
+}
+
+run(process.argv[2]);
