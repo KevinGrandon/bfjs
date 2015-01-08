@@ -4,7 +4,7 @@
   "description": "",
   "main": "run",
   "author": "Kevin Grandon <kevingrandon@yahoo.com>",
-  "license": "ISC",
+  "license": "MPL",
   "dependencies": {
     "readline-sync": "^0.4.10"
   }

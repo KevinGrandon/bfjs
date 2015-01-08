@@ -3,12 +3,12 @@
 var memory = Array();
 var maxMem = 256;
 var maxVal = 255;
-var ip = 0;
-var mp = 0;
-var dp = 0;
-var program = new Array();
-var targets = new Array();
-var input = new Array();
+var instructionPointer = 0;
+var memPointer = 0;
+var inputPointer = 0;
+var program = [];
+var targets = [];
+var input = [];
 var output = '';
 var promptForInput = 0;
 
@@ -18,11 +18,11 @@ function initMemory() {
 	for (var i = 0; i <= maxMem; i++) {
 		memory[i] = 0;
 	}
-	mp = 0;
+	memPointer = 0;
 }
 
 function initIo() {
-	dp = 0;
+	inputPointer = 0;
 	output = '';
 }
 
@@ -36,13 +36,13 @@ function initProg(code) {
 			program[program.length] = op;
 		}
 	}
-	ip = 0;
+	instructionPointer = 0;
 	initTargets();
 }
 
 function initTargets() {
 	targets.length = 0;
-	var tempStack = new Array();
+	var tempStack = [];
 	for (var i = 0; i < program.length; i++) {
 		var op = program[i];
 		if (op == '[') {
@@ -64,7 +64,7 @@ function initInput() {
 	for (var i = 0; i < in_data.length; i++) {
 		input[input.length] = in_data.charAt(i);
 	}
-	dp = 0;
+	inputPointer = 0;
 }
 
 function getInput() {
@@ -84,8 +84,8 @@ function getInput() {
 		}
 		return data.charCodeAt(0);
 	} else {
-		var result = (dp >= input.length) ? 0 : input[dp].charCodeAt(0);
-		dp++;
+		var result = (inputPointer >= input.length) ? 0 : input[inputPointer].charCodeAt(0);
+		inputPointer++;
 		return result;
 	}
 }
@@ -110,47 +110,47 @@ function putOutput(c) {
 function executeOpcode(op) {
 	switch (op) {
 		case '+':
-			memory[mp] ++;
-			if (memory[mp] > maxVal) memory[mp] = 0;
+			memory[memPointer] ++;
+			if (memory[memPointer] > maxVal) memory[memPointer] = 0;
 			break;
 		case '-':
-			memory[mp] --;
-			if (memory[mp] < 0) memory[mp] = maxVal;
+			memory[memPointer] --;
+			if (memory[memPointer] < 0) memory[memPointer] = maxVal;
 			break;
 		case '>':
-			mp++;
-			if (mp >= maxMem) mp = 0;
+			memPointer++;
+			if (memPointer >= maxMem) memPointer = 0;
 			break;
 		case '<':
-			mp--;
-			if (mp < 0) mp = maxMem - 1;
+			memPointer--;
+			if (memPointer < 0) memPointer = maxMem - 1;
 			break;
 		case '[':
-			if (memory[mp] == 0) ip = targets[ip];
+			if (memory[memPointer] == 0) instructionPointer = targets[instructionPointer];
 			break;
 		case ']':
-			ip = targets[ip] - 1;
+			instructionPointer = targets[instructionPointer] - 1;
 			break;
 		case '.':
-			putOutput(String.fromCharCode(memory[mp]));
+			putOutput(String.fromCharCode(memory[memPointer]));
 			break;
 		case ',':
-			memory[mp] = getInput();
+			memory[memPointer] = getInput();
 			break;
 	}
 }
 
 function runDone() {
-	console.log('finished: ', output);
+	console.log(output);
 }
 
 function runStep() {
-	// execute instrcution under ip
-	var op = program[ip];
+	// execute instrcution under instructionPointer
+	var op = program[instructionPointer];
 	executeOpcode(op);
-	// increment ip
-	ip++;
-	if (ip >= program.length) {
+	// increment instructionPointer
+	instructionPointer++;
+	if (instructionPointer >= program.length) {
 		runDone();
 		return;
 	}
@@ -158,7 +158,6 @@ function runStep() {
 }
 
 function run(prog) {
-	console.log('Processing:', prog);
 	initProg(prog);
 	initMemory();
 	initIo();
