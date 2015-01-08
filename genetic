@@ -1,0 +1,98 @@
+#! /usr/bin/env node --harmony
+
+var random = require('./util/random_inc');
+var stringDistance = require('./util/string_distance');
+
+var randomProgram = require('./lib/random_program');
+var instructions = require('./lib/instructions');
+var interpreter = require('./lib/interpreter');
+
+var options = {
+	// Whether you want to minimize fitness function. default is `false`.
+	minimize: false,
+
+	// Population size.
+	popSize: 500,
+
+	// mutation chance per single child generation
+	mutateProbability: 0.1,
+
+	// crossover chance per single child generation
+	crossoverProbability: 0.3,
+
+	// This function used by genetic to generate random solution.
+	getRandomSolution: randomProgram,
+
+	// This is a syncronous function which determines how long genetic algorithm will work. During the process it will act as a 'until' criteria - so algorithm stops, when this function returns true.
+	stopCriteria: function() {
+		console.log('Checking stop criteria.');
+		return (this.generation == 1000);
+	},
+
+	// Responsible to calculate measure how good your solution is.
+	fitness: function(program, callback) {
+		var output = '';
+
+		try {
+			output = interpreter(program);
+		} catch(e) {}
+
+		var targetOutput = 'Hello Kevin!';
+
+		var score = targetOutput.length - stringDistance(output, targetOutput);
+		if (score > 0) {
+			console.log('Score is:', score, output, program);
+		}
+
+		callback(score);
+	},
+
+	// Mutation is used to slightly alter one of your existing solution (mostly random) to provide diversity in you developing population.
+	mutate: function(program, callback) {
+		// Just use a completely new random program for now.
+		randomProgram(callback);
+		return;
+
+		//console.log('mutate');
+		// We have a chance to either insert an instruction at a random position, or change an instruction.
+		//console.log('before:', program);
+		if (Math.random() > 0.5) {
+			var pos = random(0, program.length);
+			program = program.substr(0, pos) + instructions.randomInstruction() + program.substr(pos - 1);
+		} else {
+			var pos = random(0, program.length - 1);
+			program = program.substr(0, pos) + instructions.randomInstruction() + program.substr(pos);
+		}
+		//console.log('after :', program);
+		callback(program);
+	},
+
+	// A function for two parents reproduction - it should produce a new solution by mixing attributes of parents.
+	crossover: function(parent1, parent2, callback) {
+		// Just use a completely new random program for now.
+		randomProgram(callback);
+		return;
+
+		var order = [];
+		if (Math.random() > 0.5) {
+			order = [parent1, parent2];
+		} else {
+			order = [parent2, parent1];
+		}
+
+		// Take half of each program.
+		var child =
+			order[0].substr(0, order[0].length / 2) +
+			order[1].substr(order[1].length / 2);
+
+		callback(child);
+	}
+};
+
+
+var Task = require('genetic').Task;
+var instance = new Task(options);
+
+instance.run(function(stats) {
+	console.log('results', stats)
+});
