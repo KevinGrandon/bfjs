@@ -1,0 +1,11 @@
+{
+  "name": "bfjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "run",
+  "author": "Kevin Grandon <kevingrandon@yahoo.com>",
+  "license": "ISC",
+  "dependencies": {
+    "readline-sync": "^0.4.10"
+  }
+}

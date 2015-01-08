@@ -12,6 +12,8 @@ var input = new Array();
 var output = '';
 var promptForInput = 0;
 
+var readlineSync = require('readline-sync');
+
 function initMemory() {
 	for (var i = 0; i <= maxMem; i++) {
 		memory[i] = 0;
@@ -67,7 +69,9 @@ function initInput() {
 
 function getInput() {
 	if (promptForInput) {
-		var data = window.prompt("Enter an input character (use #xxx to specify a decimal code, !xxx for an octal code, or $xxx for a hex code):", "#0");
+		console.log('Enter an input character (use #xxx to specify a decimal code, !xxx for an octal code, or $xxx for a hex code). E.g., #0');
+		var data = readlineSync.question('Input :');
+
 		if ((data == null) || (!data)) return 0;
 		if (data.charAt(0) == '#') {
 			return parseInt(data.substr(1), 10);
