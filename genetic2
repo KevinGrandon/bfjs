@@ -47,11 +47,10 @@ function scoreAndAddToPopulation(program) {
 	if (output.length) {
 		process.stdout.write('.');
 		var score = stringDistance(output, targetOutput);
-		score = targetOutput.length - score + output.length;
+		console.log('Score: ' + output, score);
 		if (score < 1) {
 			return null;
 		}
-		console.log('Score: ' + output, score);
 		var record = [program, score, output];
 		population.push(record);
 		return record;
