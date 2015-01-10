@@ -1,11 +1,11 @@
 #! /usr/bin/env node --harmony
 
-var random = require('./util/random_inc');
-var stringDistance = require('./util/string_distance');
+var random = require('./src/util/random_inc');
+var stringDistance = require('./src/util/string_distance');
 
-var randomProgram = require('./lib/random_program');
-var instructions = require('./lib/instructions');
-var interpreter = require('./lib/interpreter');
+var randomProgram = require('./src/lib/random_program');
+var instructions = require('./src/lib/instructions');
+var interpreter = require('./src/lib/interpreter');
 
 // Our target output.
 var targetOutput = 'Hello world, my name is Kevin!';
