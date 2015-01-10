@@ -1,5 +1,5 @@
 #! /usr/bin/env node --harmony
 
-var interpreter = require('./lib/interpreter');
+var interpreter = require('./src/lib/interpreter');
 var result = interpreter(process.argv[2]);
 console.log(result);
