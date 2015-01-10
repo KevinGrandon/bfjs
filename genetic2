@@ -1,7 +1,7 @@
 #! /usr/bin/env node --harmony
 
 var random = require('./src/util/random_inc');
-var stringDistance = require('./src/util/string_distance');
+var stringFitness = require('./src/fitness/string_fitness');
 
 var randomProgram = require('./src/lib/random_program');
 var instructions = require('./src/lib/instructions');
@@ -46,8 +46,8 @@ function scoreAndAddToPopulation(program) {
 
 	if (output.length) {
 		process.stdout.write('.');
-		var score = stringDistance(output, targetOutput);
-		console.log('Score: ' + output, score);
+		var score = stringFitness(output, targetOutput);
+		console.log('Score: ' + score, output);
 		if (score < 1) {
 			return null;
 		}
@@ -63,7 +63,7 @@ function scoreAndAddToPopulation(program) {
  */
 function pruneLowScores() {
 	population = population.sort(function(a, b) {
-		return b[1] - a[1];
+		return a[1] - b[1];
 	});
 	population.length = numParentsGeneration;
 }
@@ -89,7 +89,12 @@ function mutateAndFillPopulation() {
 			currentMutationSuccessCount = 0;
 		}
 
-		var mutation = mutate(population[currentMutationIndex]);
+		var mutation;
+
+		// Mutate 10 times
+		for (var i = 0; i < 10; i++) {
+			mutation = mutate(population[currentMutationIndex]);
+		}
 		var record = scoreAndAddToPopulation(mutation);
 		if (record) {
 			currentMutationSuccessCount++;

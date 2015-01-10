@@ -1,14 +1,18 @@
 // Compute the edit distance between the two given strings
-module.exports = function(str1, str2) {
+module.exports = function(str1, target) {
   var fitness = 0;
-  if (!str1.length || !str2.length) {
+  if (!str1.length || !target.length) {
     return 0;
   }
 
-  for (var i = 0; i < str2.length; i++) {
-    if (!str2[i] || !str1[i]) { continue; }
+  for (var i = 0; i < target.length; i++) {
+    if (!str1[i]) {
+    	fitness += 256;
+    	continue;
+    }
 
-    fitness += 256 - Math.abs(str2.charCodeAt(i) - str1.charCodeAt(i));
+    fitness += 256 - Math.abs(str1.charCodeAt(i) - target.charCodeAt(i));
   }
+
   return fitness;
 };
