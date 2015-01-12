@@ -1,98 +1,130 @@
 #! /usr/bin/env node --harmony
 
 var random = require('./src/util/random_inc');
-var stringDistance = require('./src/util/string_distance');
+var stringFitness = require('./src/fitness/string_fitness');
 
 var randomProgram = require('./src/lib/random_program');
 var instructions = require('./src/lib/instructions');
 var interpreter = require('./src/lib/interpreter');
 
-var options = {
-	// Whether you want to minimize fitness function. default is `false`.
-	minimize: false,
+// Our target output.
+var targetOutput = 'Hello world, my name is Kevin!';
 
-	// Population size.
-	popSize: 500,
+// The minimum number of valid programs to generate for each generation.
+var minPopulation = 100;
 
-	// mutation chance per single child generation
-	mutateProbability: 0.1,
+// The number of high scorers to persist across generations.
+var numParentsGeneration = 10;
 
-	// crossover chance per single child generation
-	crossoverProbability: 0.3,
+var generationCount = 0;
 
-	// This function used by genetic to generate random solution.
-	getRandomSolution: randomProgram,
+// The current population.
+var population = [];
 
-	// This is a syncronous function which determines how long genetic algorithm will work. During the process it will act as a 'until' criteria - so algorithm stops, when this function returns true.
-	stopCriteria: function() {
-		console.log('Checking stop criteria.');
-		return (this.generation == 1000);
-	},
-
-	// Responsible to calculate measure how good your solution is.
-	fitness: function(program, callback) {
-		var output = '';
-
-		try {
-			output = interpreter(program);
-		} catch(e) {}
-
-		var targetOutput = 'Hello Kevin!';
-
-		var score = targetOutput.length - stringDistance(output, targetOutput);
-		if (score > 0) {
-			console.log('Score is:', score, output, program);
+/**
+ * Generates a random population.
+ */
+function generatePopulation() {
+	while(true) {
+		if (population.length > minPopulation) {
+			break;
 		}
-
-		callback(score);
-	},
-
-	// Mutation is used to slightly alter one of your existing solution (mostly random) to provide diversity in you developing population.
-	mutate: function(program, callback) {
-		// Just use a completely new random program for now.
-		randomProgram(callback);
-		return;
-
-		//console.log('mutate');
-		// We have a chance to either insert an instruction at a random position, or change an instruction.
-		//console.log('before:', program);
-		if (Math.random() > 0.5) {
-			var pos = random(0, program.length);
-			program = program.substr(0, pos) + instructions.randomInstruction() + program.substr(pos - 1);
-		} else {
-			var pos = random(0, program.length - 1);
-			program = program.substr(0, pos) + instructions.randomInstruction() + program.substr(pos);
-		}
-		//console.log('after :', program);
-		callback(program);
-	},
-
-	// A function for two parents reproduction - it should produce a new solution by mixing attributes of parents.
-	crossover: function(parent1, parent2, callback) {
-		// Just use a completely new random program for now.
-		randomProgram(callback);
-		return;
-
-		var order = [];
-		if (Math.random() > 0.5) {
-			order = [parent1, parent2];
-		} else {
-			order = [parent2, parent1];
-		}
-
-		// Take half of each program.
-		var child =
-			order[0].substr(0, order[0].length / 2) +
-			order[1].substr(order[1].length / 2);
-
-		callback(child);
+		randomProgram(function(value) {
+			scoreAndAddToPopulation(value);
+		});
 	}
-};
+}
 
+/**
+ * Scores this population and adds it to our population.
+ */
+function scoreAndAddToPopulation(program) {
+	var output = '';
+	try {
+		output = interpreter(program);
+	} catch(e) {}
 
-var Task = require('genetic').Task;
-var instance = new Task(options);
+	if (output.length) {
+		process.stdout.write('.');
+		var score = stringFitness(output, targetOutput);
+		console.log('Score: ' + score, output);
+		if (score < 1) {
+			return null;
+		}
+		var record = [program, score, output];
+		population.push(record);
+		return record;
+	}
+	return null;
+}
 
-instance.run(function(stats) {
-	console.log('results', stats)
-});
+/**
+ * Sorts the list and generates a new population with only the members we want to keep.
+ */
+function pruneLowScores() {
+	population = population.sort(function(a, b) {
+		return a[1] - b[1];
+	});
+	population.length = numParentsGeneration;
+}
+
+function mutateAndFillPopulation() {
+	var numMutationsForEach = minPopulation / numParentsGeneration;
+	console.log('Mutating ', numMutationsForEach, 'times');
+
+	// The index of the current program in population that we are mutating.
+	var currentMutationIndex = 0;
+
+	// The number of successful mutations for this parent.
+	var currentMutationSuccessCount = 0;
+
+	while(true) {
+		if (population.length > minPopulation) {
+			break;
+		}
+
+		// Go to next parent if we finish one.
+		if (currentMutationSuccessCount >= numMutationsForEach) {
+			currentMutationIndex++;
+			currentMutationSuccessCount = 0;
+		}
+
+		var mutation = population[currentMutationIndex][0];
+		// Mutate 10 times
+		for (var i = 0; i < 10; i++) {
+			mutation = mutate(mutation);
+		}
+		var record = scoreAndAddToPopulation(mutation);
+		if (record) {
+			currentMutationSuccessCount++;
+		}
+	}
+}
+
+function mutate(program) {
+	if (Math.random() > 0.5) {
+		// Replace a random instruction.
+		var pos = random(0, program.length);
+		program = program.substr(0, pos) + instructions.randomInstruction() + program.substr(pos + 1);
+	} else {
+		// Insert a random instruction.
+		var pos = random(0, program.length);
+		program = program.substr(0, pos) + instructions.randomInstruction() + program.substr(pos);
+	}
+	return program
+}
+
+function runStep() {
+	generationCount++;
+	pruneLowScores();
+	console.log('Generation ' + generationCount);
+	console.log('--------------------------------');
+	console.log('Top scores:', population)
+
+	mutateAndFillPopulation();
+
+	runStep();
+}
+
+generatePopulation();
+runStep();
