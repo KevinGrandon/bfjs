@@ -1,0 +1,5 @@
+#! /usr/bin/env node --harmony
+
+var parser = require('./src/lib/parser');
+var result = parser(process.argv[2]);
+console.log(JSON.stringify(result, null, ' '));
