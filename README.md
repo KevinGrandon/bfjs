@@ -3,9 +3,18 @@
 A brainfuck experiment in javascript, using node.js.
 
 ## Usage
+
+Interpreter Usage
+
 ```
 ./interpret "++++++++[<++++++++>-]<+."
 ./interpret "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++."
+```
+
+Genetic Algorithm Finder
+
+```
+./genetic
 ```
 
 ## Credit
