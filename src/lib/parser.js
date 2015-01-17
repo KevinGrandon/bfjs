@@ -1,3 +1,7 @@
+/**
+ * Builds an AST (abstract syntax tree) from brainfuck.
+ */
+
 function Increment() {
 	this.symbol = '+';
 }

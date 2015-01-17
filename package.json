@@ -3,9 +3,14 @@
   "version": "1.0.2",
   "description": "",
   "main": "index.js",
+  "scripts": {
+    "test": "./test/runall.sh"
+  },
   "author": "Kevin Grandon <kevingrandon@yahoo.com>",
   "license": "MPL",
   "dependencies": {
-    "readline-sync": "^0.4.10"
+    "readline-sync": "^0.4.10",
+    "mocha": "^2.1.0",
+    "assert": "^1.3.0"
   }
 }

@@ -24,7 +24,3 @@ Genetic Algorithm Finder
 ```
 ./genetic
 ```
-
-## Credit
-
-Implementation influenced by: http://www.iamcal.com/misc/bf_debug/
