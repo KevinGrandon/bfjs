@@ -2,7 +2,7 @@
   "name": "bfjs",
   "version": "1.0.0",
   "description": "",
-  "main": "run",
+  "main": "index.js",
   "author": "Kevin Grandon <kevingrandon@yahoo.com>",
   "license": "MPL",
   "dependencies": {
