@@ -40,7 +40,7 @@ function getLoop(prog, start) {
 	var loopPart = prog.substring(start + 1, end - 1);
 
 	// Re-run the parser on this part.
-	return module.exports(loopPart);
+	return exports.tokenize(loopPart);
 }
 
 function getLoopEnd(prog, position) {
@@ -74,35 +74,38 @@ function getLoopEnd(prog, position) {
 	return position;
 }
 
-module.exports = function(prog) {
-	var ast = [];
+/**
+ * Converts a program to a token stream.
+ */
+exports.tokenize = function(prog) {
+	var stream = [];
 
 	for (var i = 0; i < prog.length; i++) {
 		var inst = prog[i];
 		switch (inst) {
 			case '+':
-				ast.push(new Increment());
+				stream.push(new Increment());
 				break;
 			case '-':
-				ast.push(new Decrement());
+				stream.push(new Decrement());
 				break;
 			case '>':
-				ast.push(new Next());
+				stream.push(new Next());
 				break;
 			case '<':
-				ast.push(new Prev());
+				stream.push(new Prev());
 				break;
 			case ',':
-				ast.push(new Input());
+				stream.push(new Input());
 				break;
 			case '.':
-				ast.push(new Output());
+				stream.push(new Output());
 				break;
 			case '[':
 				var loop = [new LoopStart()]
 					.concat(getLoop(prog, i))
 					.concat(new LoopEnd());
-				ast.push(loop);
+				stream.push(loop);
 
 				// Increment until the end of the loop.
 				i += loop.length - 1;
@@ -110,5 +113,23 @@ module.exports = function(prog) {
 		}
 	}
 
-	return ast;
+	return stream;
+};
+
+/**
+ * Converts a token stream to a program.
+ */
+exports.programize = function(stream) {
+	var program = '';
+
+	for (var i = 0; i < stream.length; i++) {
+		var token = stream[i];
+		if (Array.isArray(token)) {
+			program += exports.programize(token);
+		} else {
+			program += token.symbol;
+		}
+	}
+
+	return program;
 };
