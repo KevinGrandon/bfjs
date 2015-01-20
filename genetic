@@ -25,6 +25,8 @@ var population = [];
 
 var lastHightestScore = 0;
 
+var numSameGenerations = 0;
+
 /**
  * Generates a random population.
  */
@@ -70,14 +72,18 @@ function pruneNonParents() {
 		return b[1] - a[1];
 	});
 	population.length = Math.round(minPopulation / 2);
+
 	// If the score remains the same, try to increase mutation count to avoid reaching a local maximum.
-	// This should not be needed with parenting.
-	/*
 	if (lastHightestScore === population[0][1]) {
+		numSameGenerations++;
+	}
+
+	// Increment the number of generations.
+	if (numSameGenerations >= numMutationsEachGeneration) {
+		numSameGenerations = 0;
 		numMutationsEachGeneration++;
 	}
 	lastHightestScore = population[0][1];
-	*/
 }
 
 /**
@@ -130,8 +136,8 @@ function breedPopulation() {
 function mutatePopulation() {
 	for (var i = population.length - 1; i >= 0; i--) {
 		var mutation = population[i][0];
-		// Mutate 10 times
-		for (var j = 0; j < 10; j++) {
+		// Mutate based on numMutationsEachGeneration
+		for (var j = 0; j < numMutationsEachGeneration; j++) {
 			mutation = mutate(mutation);
 		}
 
@@ -166,7 +172,7 @@ function runStep() {
 	pruneNonParents();
 	console.log('');
 	console.log('\033[2J');
-	console.log('Generation: ', generationCount, ' Top Score: ', population[0][1]);
+	console.log('Generation: ', generationCount, ' Top Score: ', population[0][1], ' Mutations: ', numMutationsEachGeneration);
 	console.log('--------------------------------');
 	console.log('Top program:', population[0])
 
