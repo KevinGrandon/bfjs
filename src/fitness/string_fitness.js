@@ -16,6 +16,11 @@ module.exports = function(str1, target) {
     }
     fitness += Math.abs(str1.charCodeAt(i) - target.charCodeAt(i));
   }
-  return (256 * target.length) - fitness
-    + (target.length - Math.abs(target.length - str1.length));
+  var fitness = (256 * target.length) - fitness;
+
+  if (fitness === (256 * target.length)) {
+    fitness += (target.length - Math.abs(target.length - str1.length));
+  }
+
+  return fitness;
 };
