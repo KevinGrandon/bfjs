@@ -67,9 +67,10 @@ function scoreAndAddToPopulation(program) {
 }
 
 /**
- * Removes programs from the current population, only leaving parents for the next generation.
+ * Finds the parents for the next generation.
+ * Removes programs from the current population, and assigns parents to the population as a seed.
  */
-function pruneNonParents() {
+function findParents() {
 	population = population.sort(function(a, b) {
 		return b[1] - a[1];
 	});
@@ -89,10 +90,10 @@ function pruneNonParents() {
 }
 
 /**
- * Breeds members from the current population against each other.
- * The population is bred in a random order.
+ * Generates children for the current generation using the population as
+ * a list of parents. The population is bred in a random order.
  */
-function breedPopulation() {
+function generateChildren() {
 	// The pointer to the current pointer.
 	var currentParentPointer = 0;
 
@@ -171,7 +172,7 @@ function mutate(program) {
 
 function runStep() {
 	generationCount++;
-	pruneNonParents();
+	findParents();
 
 	console.log('\033[2J');
 
@@ -187,7 +188,7 @@ function runStep() {
 	console.log('-----------------------------------------------');
 	console.log('Top program:', population[0])
 
-	breedPopulation();
+	generateChildren();
 	mutatePopulation();
 
 	runStep();
