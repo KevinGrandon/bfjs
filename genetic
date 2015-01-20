@@ -10,7 +10,7 @@ var interpreter = require('./src/lib/interpreter');
 var randomizeArray = require('./src/util/randomize_array');
 
 // Our target output.
-var targetOutput = 'Hi';
+var targetOutput = process.argv[2] || 'Hello world.';
 
 // Store the maxScore for the fitness function so we know when to quit.
 var maxScore = stringFitness(targetOutput, targetOutput);

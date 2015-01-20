@@ -24,5 +24,5 @@ Parser Usage
 Genetic Algorithm Finder
 
 ```
-./genetic
+./genetic 'hi'
 ```
