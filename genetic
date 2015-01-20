@@ -184,7 +184,7 @@ function runStep() {
 	}
 
 	console.log('\033[2J');
-	console.log('Generation: ', generationCount, ' Top Score: ', population[0][1], ' Mutations: ', numMutationsEachGeneration);
+	console.log('Generation: ', generationCount, ' Top Score: ', population[0][1], '/', maxScore, ' Mutations: ', numMutationsEachGeneration);
 	console.log('-----------------------------------------------');
 	console.log('Top program:', population[0])
 
