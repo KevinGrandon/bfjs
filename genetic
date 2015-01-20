@@ -3,18 +3,17 @@
 var random = require('./src/util/random_inc');
 var stringFitness = require('./src/fitness/string_fitness');
 
+var crossover = require('./src/crossover/cut_splice');
 var randomProgram = require('./src/lib/random_program');
 var instructions = require('./src/lib/instructions');
 var interpreter = require('./src/lib/interpreter');
+var randomizeArray = require('./src/util/randomize_array');
 
 // Our target output.
 var targetOutput = 'Hello world';
 
 // The minimum number of valid programs to generate for each generation.
 var minPopulation = 100;
-
-// The number of high scorers to persist across generations.
-var numParentsGeneration = 10;
 
 // How many mutations for each program for each generation.
 var numMutationsEachGeneration = 10;
@@ -64,46 +63,82 @@ function scoreAndAddToPopulation(program) {
 }
 
 /**
- * Sorts the list and generates a new population with only the members we want to keep.
+ * Removes programs from the current population, only leaving parents for the next generation.
  */
-function pruneLowScores() {
+function pruneNonParents() {
 	population = population.sort(function(a, b) {
 		return b[1] - a[1];
 	});
-	population.length = numParentsGeneration;
+	population.length = Math.round(minPopulation / 2);
 	// If the score remains the same, try to increase mutation count to avoid reaching a local maximum.
+	// This should not be needed with parenting.
+	/*
 	if (lastHightestScore === population[0][1]) {
 		numMutationsEachGeneration++;
 	}
 	lastHightestScore = population[0][1];
+	*/
 }
 
-function mutateAndFillPopulation() {
-	// The index of the current program in population that we are mutating.
-	var currentMutationIndex = 0;
+/**
+ * Breeds members from the current population against each other.
+ * The population is bred in a random order.
+ */
+function breedPopulation() {
+	// The pointer to the current pointer.
+	var currentParentPointer = 0;
 
-	// The number of successful mutations for this parent.
-	var currentMutationSuccessCount = 0;
+	var childCountPerPair = 0;
+
+	randomizeArray(population);
 
 	while(true) {
 		if (population.length > minPopulation) {
 			break;
 		}
 
-		// Go to next parent if we finish one.
-		if (currentMutationSuccessCount >= numMutationsEachGeneration) {
-			currentMutationIndex++;
-			currentMutationSuccessCount = 0;
+		// Create a child via gene crossover.
+		// The first parent can be different depending on the iteration.
+		// This will allow us to generate children independently from each other
+		// as each crossover method should only return a single child.
+		var child;
+		var firstParent = population[currentParentPointer][0];
+		var secondParent = population[currentParentPointer + 1][0];
+		if (childCountPerPair > 0) {
+			child = crossover(secondParent, firstParent);
+		} else {
+			child = crossover(firstParent, secondParent);
 		}
 
-		var mutation = population[currentMutationIndex][0];
+		var record = scoreAndAddToPopulation(child);
+		if (record) {
+			childCountPerPair++;
+		}
+
+		// Reset counters if we have two children.
+		if (childCountPerPair == 2) {
+			childCountPerPair = 0;
+			currentParentPointer += 2;
+		}
+	}
+}
+
+/**
+ * Mutates the population by iterating over each program, and applying a mutation.
+ * We keep the new program as long as it compiles, regardless of how it scores.
+ */
+function mutatePopulation() {
+	for (var i = population.length - 1; i >= 0; i--) {
+		var mutation = population[i][0];
 		// Mutate 10 times
-		for (var i = 0; i < 10; i++) {
+		for (var j = 0; j < 10; j++) {
 			mutation = mutate(mutation);
 		}
+
+		// If we get a record that compiles, remove the old one.
 		var record = scoreAndAddToPopulation(mutation);
 		if (record) {
-			currentMutationSuccessCount++;
+			population.splice(i, 1);
 		}
 	}
 }
@@ -128,13 +163,15 @@ function mutate(program) {
 
 function runStep() {
 	generationCount++;
-	pruneLowScores();
+	pruneNonParents();
 	console.log('');
-	console.log('Generation ' + generationCount);
+	console.log('\033[2J');
+	console.log('Generation: ', generationCount, ' Top Score: ', population[0][1]);
 	console.log('--------------------------------');
-	console.log('Top scores:', population)
+	console.log('Top program:', population[0])
 
-	mutateAndFillPopulation();
+	breedPopulation();
+	mutatePopulation();
 
 	runStep();
 }
