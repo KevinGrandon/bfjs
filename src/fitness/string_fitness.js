@@ -1,4 +1,8 @@
-// Compute the edit distance between the two given strings
+/**
+ * Compute the edit distance between the two given strings
+ * @param {String} str1 The provided string.
+ * @param {String} target The target string.
+ */
 module.exports = function(str1, target) {
   var fitness = 0;
   if (!str1.length || !target.length) {
@@ -10,12 +14,7 @@ module.exports = function(str1, target) {
       fitness += 256;
       continue;
     }
-    fitness += /*256 - */Math.abs(str1.charCodeAt(i) - target.charCodeAt(i));
-    //console.log('Step is:', fitness)
+    fitness += Math.abs(str1.charCodeAt(i) - target.charCodeAt(i));
   }
-//console.log('NEW FIT', fitness)
-  return (256*target.length) - fitness;
+  return (256 * target.length) - fitness;
 };
-
-//console.log('Fitness is (ÿ): ', module.exports('ÿÿÿÿÿÿÿÿÿÿÿ', 'Hello world'));
-//console.log('Fitness is (H): ', module.exports('Hello world', 'Hello world'));

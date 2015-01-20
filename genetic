@@ -10,7 +10,10 @@ var interpreter = require('./src/lib/interpreter');
 var randomizeArray = require('./src/util/randomize_array');
 
 // Our target output.
-var targetOutput = 'Hello world';
+var targetOutput = 'Hi';
+
+// Store the maxScore for the fitness function so we know when to quit.
+var maxScore = stringFitness(targetOutput, targetOutput);
 
 // The minimum number of valid programs to generate for each generation.
 var minPopulation = 100;
@@ -53,7 +56,6 @@ function scoreAndAddToPopulation(program) {
 	if (output.length) {
 		process.stdout.write('.');
 		var score = stringFitness(output, targetOutput);
-		//console.log('Score: ' + score, output);
 		if (score < 1) {
 			return null;
 		}
@@ -170,10 +172,19 @@ function mutate(program) {
 function runStep() {
 	generationCount++;
 	pruneNonParents();
-	console.log('');
+
+	console.log('\033[2J');
+
+	// If we've reached our desired finess we're done.
+	if (population[0][1] >= maxScore) {
+		console.log('Finished in ', generationCount, ' generations. Top program and output:');
+		console.log(population[0]);
+		return;
+	}
+
 	console.log('\033[2J');
 	console.log('Generation: ', generationCount, ' Top Score: ', population[0][1], ' Mutations: ', numMutationsEachGeneration);
-	console.log('--------------------------------');
+	console.log('-----------------------------------------------');
 	console.log('Top program:', population[0])
 
 	breedPopulation();
